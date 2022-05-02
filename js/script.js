@@ -58,9 +58,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
    function getTimeRemaining(endtime) {
       // функция, вычесляющая данные для таймера
-      let days, hours, minutes, seconds
+      let days, hours, minutes, seconds;
       const t = Date.parse(endtime) - Date.parse(new Date());
-      
+
       if (t <= 0) {
          days = 0;
          hours = 0;
@@ -69,19 +69,19 @@ window.addEventListener("DOMContentLoaded", () => {
       } else {
          days = Math.floor(t / (1000 * 60 * 60 * 24));
          hours = Math.floor((t / (1000 * 60 * 60)) % 24);
-         minutes = Math.floor((t / 1000 / 60 ) % 60);
+         minutes = Math.floor((t / 1000 / 60) % 60);
          seconds = Math.floor((t / 1000) % 60);
       }
-      
+
       // В переменной Т = разница между дедлайном и текущим временем
       // Все следующие переменные вычесляют дни, часы.... в остатке + с 
       // округлнеие Math.floor(округляет к меньшему)
       return {
-         "total" : t,
-         "days" : days,
-         "hours" : hours,
-         "minutes" : minutes,
-         "seconds" : seconds
+         "total": t,
+         "days": days,
+         "hours": hours,
+         "minutes": minutes,
+         "seconds": seconds
       };
       // функция возвращает обьект с данными
    }
@@ -95,7 +95,7 @@ window.addEventListener("DOMContentLoaded", () => {
    }
    // функция, которая подставляем 0, когда значения в таймере не двузначное
 
-   function setClock(selector, endtime) { 
+   function setClock(selector, endtime) {
       // функция таймер, в параметрах селектор елемента на стр (таймеров может быть
       // много), второй - наш дедлайн
       const timer = document.querySelector(selector);
@@ -120,7 +120,7 @@ window.addEventListener("DOMContentLoaded", () => {
          seconds.innerHTML = getZero(t.seconds);
          // присваиваем елементам на странице соответсвующии значения из функции
 
-         if(t.total <= 0) {
+         if (t.total <= 0) {
             clearInterval(timeInterval);
          }
          // останавливаем функцию в случае, если разница в времени будет 0
@@ -129,7 +129,69 @@ window.addEventListener("DOMContentLoaded", () => {
 
    setClock(".timer", deadline);
 
-   
+   // Modal
+   const modalOn = document.querySelectorAll("[data-modal]");
+   const modalOff = document.querySelector("[data-close]");
+   const modalWindow = document.querySelector(".modal");
+   const modalStyle = getComputedStyle(modalWindow);
 
+   function modalSwitcher(item) {
+      if (modalStyle.display == "none") {
+         modalWindow.style.display = "block";
+         document.body.style.overflow = "hidden";
+         clearTimeout(timerTimeout);
+         // если пользователь нажмёт на мод окно, раньше, чем
+         // оно автомат. вызовется - то клиртаймаут отклю авт. вызов
+      } else if (modalStyle.display == "block") {
+         modalWindow.style.display = "none";
+         document.body.style.overflow = "";
+      }
+   }
+
+   modalOn.forEach(item => {
+      item.addEventListener("click", () => {
+         modalSwitcher();
+      });
+   });
+
+   modalOff.addEventListener("click", () => {
+      modalSwitcher();
+   });
+
+   modalWindow.addEventListener("click", (e) => {
+      if (e.target === modalWindow) {
+         modalSwitcher();
+      }
+   });
+   // Фунцкция, на клик вне области модального окна
+
+   document.addEventListener("keydown", (e) => {
+      if (e.code === "Escape" && modalStyle.display == "block") {
+         modalSwitcher();
+      }
+   });
+
+   // // Функция на закрывание модального окна кнопкой еск
+   const timerTimeout = setTimeout(modalSwitcher, 5000);
+   // вызов функции появления мод окна через некотор. время
+
+
+   const scrollHeight = Math.max(
+      document.body.scrollHeight, document.documentElement.clientHeight,
+      document.body.offsetHeight, document.documentElement.offsetHeight,
+      document.body.clientHeight, document.documentElement.clientHeight
+   );
+      // правильная высота всего содержимого документа
+
+   function showModalByScroll() {
+      if (window.pageYOffset + document.documentElement.clientHeight >= scrollHeight) {
+         modalSwitcher();
+         removeEventListener("scroll", showModalByScroll);
+      }
+   }
+   // функция, вызывающая мод окно в конце страницы. ремув нужен, что бы 
+   // она сработала только 1 раз.
+
+   window.addEventListener("scroll", showModalByScroll);
 
 });
