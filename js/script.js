@@ -131,7 +131,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
    // Modal
    const modalOn = document.querySelectorAll("[data-modal]");
-   const modalOff = document.querySelector("[data-close]");
    const modalWindow = document.querySelector(".modal");
    const modalStyle = getComputedStyle(modalWindow);
 
@@ -154,12 +153,9 @@ window.addEventListener("DOMContentLoaded", () => {
       });
    });
 
-   modalOff.addEventListener("click", () => {
-      modalSwitcher();
-   });
 
    modalWindow.addEventListener("click", (e) => {
-      if (e.target === modalWindow) {
+      if (e.target === modalWindow || e.target.getAttribute("data-close") == "") {
          modalSwitcher();
       }
    });
@@ -340,13 +336,13 @@ window.addEventListener("DOMContentLoaded", () => {
             if (request.status === 200) {
                // если успех
                console.log(request.response);
-               statusMessage.textContent = message.success;
+               showThanksModal(message.success);
                // выводим сообщение про успех
                form.reset();
                // сбрасываем поля формы
                setTimeout(() => {
                   statusMessage.remove();
-               }, 2000);
+               });
                // удаляем сообщение про успех спусят 2 сек
             } else {
                statusMessage.textContent = message.failure;
@@ -355,4 +351,32 @@ window.addEventListener("DOMContentLoaded", () => {
          });
       });
    }
+
+   function showThanksModal(message) {
+      const prevModalDialog = document.querySelector(".modal__dialog");
+
+      prevModalDialog.classList.add("hide");
+      // При помощи класса хайд - скрываем дефолтное модальное окно
+      modalSwitcher();
+
+      const thanksModal = document.createElement("div");
+      thanksModal.classList.add("modal__dialog");
+      thanksModal.innerHTML = `
+      <div class="modal__content">
+         <div class="modal__close" data-close>&times;</div>
+         <div class="modal__title">${message}</div>
+      </div>
+      `;
+
+      document.querySelector(".modal").append(thanksModal);
+      setTimeout(() => {
+         thanksModal.remove();
+         prevModalDialog.classList.add("show");
+         prevModalDialog.classList.remove("hide");
+         modalSwitcher();
+      }, 4000);
+
+      
+   }
+
 });
