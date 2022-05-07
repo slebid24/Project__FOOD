@@ -220,15 +220,16 @@ window.addEventListener("DOMContentLoaded", () => {
 
       render() {
          const element = document.createElement("div");
+         // установка дефолтного значения рест оператора. Если в классес ничего не приходит (это массив, проверка через 
+         // длинну, то устанавливается дефолтный класс. это класс, который по идеи всегда должны устанавливать)
          if(this.classes.length === 0) {
             this.classes = "menu__item";
             element.classList.add(this.classes);
          } else {
             this.classes.forEach(className => element.classList.add(className));
          }
-
+         // дефолтный класс + дополнительные классы (если они есть), перебираются и добавляются к element
          
-         // дополнительные классы (если они есть), перебираются и добавляются к element
          element.innerHTML = `
                     <img src=${this.src} alt=${this.alt}>
                     <h3 class="menu__item-subtitle">${this.title}</h3>
@@ -256,8 +257,6 @@ window.addEventListener("DOMContentLoaded", () => {
       'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
       9,
       ".menu .container",
-      
-
    ).render();
 
    new MenuCard(
@@ -267,8 +266,6 @@ window.addEventListener("DOMContentLoaded", () => {
       'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
       10,
       ".menu .container",
-      
-
    ).render();
 
    new MenuCard(
@@ -278,10 +275,84 @@ window.addEventListener("DOMContentLoaded", () => {
       'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
       11,
       ".menu .container",
-   
-     
-
    ).render();
 
 
+
+   // Forms
+   const forms = document.querySelectorAll("form");
+   // выносим все формы с сайта в переменную формс
+      
+   const message = {
+      loading: "Загрузка",
+      success: "Спасибо, мы скоро с вами свяжемся",
+      failure: "Что-то пошло не так..."
+   };
+   // обьект с типами сообщений результата запроса 
+
+   forms.forEach(item => {
+      postData(item);
+   });
+   // все формы взяты через квериселектор алл, по этому для присваивания функции постДата
+   // делаем перебор массива
+   
+   function postData(form) {
+      form.addEventListener("submit", (e) => {
+      // на все кнопки баттон действует метод сабмит  
+         e.preventDefault();                                
+         const statusMessage = document.createElement("div");
+         // создаём елемент див помещаем в статусмессадж
+         statusMessage.classList.add("status");
+         // по необходимости добавляем класс
+         statusMessage.textContent = message.loading;
+         // переносим в статусмесадж свойство класса мессадж
+         form.append(statusMessage);
+         // добавляем статусмесадж на страницу в блок формы
+
+         const request = new XMLHttpRequest();
+         request.open("POST", "js/server.php");
+         
+         // request.setRequestHeader("Content-type", "multipart/form-data");
+         request.setRequestHeader("Content-type", "applications/json");
+         // При использовании обычного форм дата - заголовок не нужен. Если обычный джейсон - нужен.
+         const formData = new FormData(form);
+         // Объекты FormData используются, чтобы взять данные из HTML-формы и отправить их с помощью fetch или другого метода для работы с сетью.
+         
+         const object = {};
+         formData.forEach(function(value, key) {
+            object[key] = value;
+         });
+         // так как формдата - это не обычный обьект, его нужно перебрать
+         // в переменную
+
+         const json = JSON.stringify(object);
+         // переводим обьект в джейсон формат
+
+
+         // request.send(formData);
+         // если в обычном формате
+         request.send(json);
+         // если джейсон
+         // отправляем на сервер данные обьекта формдата 
+
+         request.addEventListener("load", () => {
+            // создаём обработчик события загрузки запроса
+            if (request.status === 200) {
+               // если успех
+               console.log(request.response);
+               statusMessage.textContent = message.success;
+               // выводим сообщение про успех
+               form.reset();
+               // сбрасываем поля формы
+               setTimeout(() => {
+                  statusMessage.remove();
+               }, 2000);
+               // удаляем сообщение про успех спусят 2 сек
+            } else {
+               statusMessage.textContent = message.failure;
+               // дефолт
+            }
+         });
+      });
+   }
 });
