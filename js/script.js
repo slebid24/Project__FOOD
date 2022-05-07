@@ -52,7 +52,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
    // Таймер
 
-   const deadline = "2022-05-09";
+   const deadline = "2022-08-09";
    // Дедлайн таймера
 
 
@@ -131,36 +131,33 @@ window.addEventListener("DOMContentLoaded", () => {
 
    // Modal
    const modalOn = document.querySelectorAll("[data-modal]");
-   const modalOff = document.querySelector("[data-close]");
+
    const modalWindow = document.querySelector(".modal");
    const modalStyle = getComputedStyle(modalWindow);
 
    function modalSwitcher(item) {
       if (modalStyle.display == "none") {
-         modalWindow.style.display = "block";
+         item.style.display = "block";
          document.body.style.overflow = "hidden";
          clearTimeout(timerTimeout);
          // если пользователь нажмёт на мод окно, раньше, чем
          // оно автомат. вызовется - то клиртаймаут отклю авт. вызов
       } else if (modalStyle.display == "block") {
-         modalWindow.style.display = "none";
+         item.style.display = "none";
          document.body.style.overflow = "";
       }
    }
 
    modalOn.forEach(item => {
       item.addEventListener("click", () => {
-         modalSwitcher();
+         modalSwitcher(modalWindow);
       });
    });
 
-   modalOff.addEventListener("click", () => {
-      modalSwitcher();
-   });
 
    modalWindow.addEventListener("click", (e) => {
-      if (e.target === modalWindow) {
-         modalSwitcher();
+      if (e.target === modalWindow || e.target.getAttribute("data-close") == "") {
+         modalSwitcher(modalWindow);
       }
    });
    // Фунцкция, на клик вне области модального окна
@@ -340,7 +337,7 @@ window.addEventListener("DOMContentLoaded", () => {
             if (request.status === 200) {
                // если успех
                console.log(request.response);
-               statusMessage.textContent = message.success;
+               showThanksModal(message.success);
                // выводим сообщение про успех
                form.reset();
                // сбрасываем поля формы
@@ -354,5 +351,28 @@ window.addEventListener("DOMContentLoaded", () => {
             }
          });
       });
+   }
+
+   function showThanksModal(message) {
+      const prevModalDialog = document.querySelector(".modal__dialog");
+
+      prevModalDialog.style.display = "none";
+      modalSwitcher(prevModalDialog);
+
+      const thanksModal = document.createElement("div");
+      thanksModal.classList(".modal__dialog");
+      thanksModal.innerHTML =`
+         <div class="modal__content">
+            <div class="modal__close" data-close>&times</div>
+            <div class="modal__title">${message}</div>
+         </div>
+      `;
+
+      document.querySelector(".modal").append(thanksModal);
+      setTimeout(() => {
+         thanksModal.remove();
+         prevModalDialog.style.display = "block";
+         
+      }, 4000);
    }
 });
