@@ -131,48 +131,42 @@ window.addEventListener("DOMContentLoaded", () => {
 
    // Modal
    const modalOn = document.querySelectorAll("[data-modal]");
-   const modalOff = document.querySelector("[data-close]");
    const modalWindow = document.querySelector(".modal");
    const modalStyle = getComputedStyle(modalWindow);
 
-   function modalSwitcher(item) {
-      if (modalStyle.display == "none") {
-         modalWindow.style.display = "block";
-         document.body.style.overflow = "hidden";
-         clearTimeout(timerTimeout);
-         // если пользователь нажмёт на мод окно, раньше, чем
-         // оно автомат. вызовется - то клиртаймаут отклю авт. вызов
-      } else if (modalStyle.display == "block") {
-         modalWindow.style.display = "none";
-         document.body.style.overflow = "";
-      }
+   function closeModal() {
+      modalWindow.style.display = "none";
+      document.body.style.overflow = "";
    }
+
+   function openModal() {
+      modalWindow.style.display = "block";
+      document.body.style.overflow = "hidden";
+      clearTimeout(timerTimeout);
+   }
+
 
    modalOn.forEach(item => {
       item.addEventListener("click", () => {
-         modalSwitcher();
+         openModal();
       });
    });
 
-   modalOff.addEventListener("click", () => {
-      modalSwitcher();
-   });
-
    modalWindow.addEventListener("click", (e) => {
-      if (e.target === modalWindow) {
-         modalSwitcher();
+      if (e.target === modalWindow || e.target.getAttribute("data-close") == "") {
+         closeModal();
       }
    });
    // Фунцкция, на клик вне области модального окна
 
    document.addEventListener("keydown", (e) => {
       if (e.code === "Escape" && modalStyle.display == "block") {
-         modalSwitcher();
+         closeModal();
       }
    });
-
    // // Функция на закрывание модального окна кнопкой еск
-   // const timerTimeout = setTimeout(modalSwitcher, 5000);
+
+   const timerTimeout = setTimeout(openModal, 500000);
    // вызов функции появления мод окна через некотор. время
 
 
@@ -185,7 +179,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
    function showModalByScroll() {
       if (window.pageYOffset + document.documentElement.clientHeight >= scrollHeight) {
-         modalSwitcher();
+         openModal();
          removeEventListener("scroll", showModalByScroll);
       }
    }
@@ -193,6 +187,134 @@ window.addEventListener("DOMContentLoaded", () => {
    // она сработала только 1 раз.
 
    window.addEventListener("scroll", showModalByScroll);
+
+   // Forms
+   const forms = document.querySelectorAll("form");
+   // выносим все формы с сайта в переменную формс
+
+   const message = {
+      loading: "img/form/spinner.svg",
+      success: "Спасибо, мы скоро с вами свяжемся",
+      failure: "Что-то пошло не так..."
+   };
+   // обьект с типами сообщений результата запроса 
+
+   forms.forEach(item => {
+      postData(item);
+   });
+   // все формы взяты через квериселектор алл, по этому для присваивания функции постДата
+   // делаем перебор массива
+
+   function postData(form) {
+      form.addEventListener("submit", (e) => {
+         // на все кнопки баттон действует метод сабмит  
+         e.preventDefault();
+         const statusMessage = document.createElement("img");
+         // создаём елемент имг (для спинера) помещаем в статусмессадж
+         statusMessage.src = message.loading;
+         // источник для тега имг - берем из обьекта, где мы указывали пусть к спинеру
+         statusMessage.style.cssText = `
+            display: block;
+            margin: 0 auto;
+         `;
+         // назначаем стили спинеру
+         
+         
+         form.insertAdjacentElement("afterend", statusMessage);
+         // добавляем спинер на страницу после всех форм
+         
+         const request = new XMLHttpRequest();
+         request.open("POST", "js/server.php");
+
+         // request.setRequestHeader("Content-type", "multipart/form-data");
+         request.setRequestHeader("Content-type", "applications/json");
+         // При использовании обычного форм дата - заголовок не нужен. Если обычный джейсон - нужен.
+         const formData = new FormData(form);
+         // Объекты FormData используются, чтобы взять данные из HTML-формы и отправить их с помощью fetch или другого метода для работы с сетью.
+
+         const object = {};
+         formData.forEach(function (value, key) {
+            object[key] = value;
+         });
+         // так как формдата - это не обычный обьект, его нужно перебрать
+         // в переменную
+
+         const json = JSON.stringify(object);
+         // переводим обьект в джейсон формат
+
+
+         // request.send(formData);
+         // если в обычном формате
+         request.send(json);
+         // если джейсон
+         // отправляем на сервер данные обьекта формдата 
+
+         request.addEventListener("load", () => {
+            // создаём обработчик события загрузки запроса
+            if (request.status === 200) {
+               // если успех
+               console.log(request.response);
+               showThanksModal(message.success);
+               // выводим сообщение про успех (задействуем фукнцию, отображающая модальное окно благодарности)
+               form.reset();
+               // сбрасываем поля формы
+               setTimeout(() => {
+                  statusMessage.remove();
+               }, 2000);
+               // удаляем сообщение про успех спусят 2 сек
+            } else {
+               showThanksModal(message.failure);
+               // дефолт
+            }
+         });
+      });
+   }
+
+   // Суть заключается в том, что мы возьмем модальное окно "Мы свяжемся с вами ..."  и спрячем его (добавим класс "hide")
+   // 
+   function showThanksModal(message) {
+      const prevModalDialog = document.querySelector('.modal__dialog');
+      prevModalDialog.classList.add('hide');
+
+      // Потом запускается родительский элемент (серый фон)
+      openModal();
+
+      // создаётся новый елемент на странице, и ему присваивается тот же
+      // самый клас модал диалог
+      // в тот же елемент помещается код модального окна
+      const thanksModal = document.createElement('div');
+      thanksModal.classList.add('modal__dialog');
+      thanksModal.innerHTML = `
+                <div class="modal__content">
+                    <div class="modal__close" data-close>×</div>
+                    <div class="modal__title">${message}</div>
+                </div>
+            `;
+      document.querySelector('.modal').append(thanksModal);
+      // потом в родительский элемент помещается редактированое мод. окно
+      
+      setTimeout(() => {
+         thanksModal.remove();
+         prevModalDialog.classList.add('show');
+         prevModalDialog.classList.remove('hide');
+         closeModal();
+      }, 4000);
+      // через 4 секудны убирается окно благодарности, 
+      // возвращаем на место класс отображения окну ввода формы( что бы в следующий раз оно снова работало)
+      // закрываем полностью модальное окно
+   }
+
+
+   
+
+
+
+
+
+
+
+
+
 
 
    // Класс для карт
@@ -222,14 +344,14 @@ window.addEventListener("DOMContentLoaded", () => {
          const element = document.createElement("div");
          // установка дефолтного значения рест оператора. Если в классес ничего не приходит (это массив, проверка через 
          // длинну, то устанавливается дефолтный класс. это класс, который по идеи всегда должны устанавливать)
-         if(this.classes.length === 0) {
+         if (this.classes.length === 0) {
             this.classes = "menu__item";
             element.classList.add(this.classes);
          } else {
             this.classes.forEach(className => element.classList.add(className));
          }
          // дефолтный класс + дополнительные классы (если они есть), перебираются и добавляются к element
-         
+
          element.innerHTML = `
                     <img src=${this.src} alt=${this.alt}>
                     <h3 class="menu__item-subtitle">${this.title}</h3>
@@ -278,81 +400,4 @@ window.addEventListener("DOMContentLoaded", () => {
    ).render();
 
 
-
-   // Forms
-   const forms = document.querySelectorAll("form");
-   // выносим все формы с сайта в переменную формс
-      
-   const message = {
-      loading: "Загрузка",
-      success: "Спасибо, мы скоро с вами свяжемся",
-      failure: "Что-то пошло не так..."
-   };
-   // обьект с типами сообщений результата запроса 
-
-   forms.forEach(item => {
-      postData(item);
-   });
-   // все формы взяты через квериселектор алл, по этому для присваивания функции постДата
-   // делаем перебор массива
-   
-   function postData(form) {
-      form.addEventListener("submit", (e) => {
-      // на все кнопки баттон действует метод сабмит  
-         e.preventDefault();                                
-         const statusMessage = document.createElement("div");
-         // создаём елемент див помещаем в статусмессадж
-         statusMessage.classList.add("status");
-         // по необходимости добавляем класс
-         statusMessage.textContent = message.loading;
-         // переносим в статусмесадж свойство класса мессадж
-         form.append(statusMessage);
-         // добавляем статусмесадж на страницу в блок формы
-
-         const request = new XMLHttpRequest();
-         request.open("POST", "js/server.php");
-         
-         // request.setRequestHeader("Content-type", "multipart/form-data");
-         request.setRequestHeader("Content-type", "applications/json");
-         // При использовании обычного форм дата - заголовок не нужен. Если обычный джейсон - нужен.
-         const formData = new FormData(form);
-         // Объекты FormData используются, чтобы взять данные из HTML-формы и отправить их с помощью fetch или другого метода для работы с сетью.
-         
-         const object = {};
-         formData.forEach(function(value, key) {
-            object[key] = value;
-         });
-         // так как формдата - это не обычный обьект, его нужно перебрать
-         // в переменную
-
-         const json = JSON.stringify(object);
-         // переводим обьект в джейсон формат
-
-
-         // request.send(formData);
-         // если в обычном формате
-         request.send(json);
-         // если джейсон
-         // отправляем на сервер данные обьекта формдата 
-
-         request.addEventListener("load", () => {
-            // создаём обработчик события загрузки запроса
-            if (request.status === 200) {
-               // если успех
-               console.log(request.response);
-               statusMessage.textContent = message.success;
-               // выводим сообщение про успех
-               form.reset();
-               // сбрасываем поля формы
-               setTimeout(() => {
-                  statusMessage.remove();
-               }, 2000);
-               // удаляем сообщение про успех спусят 2 сек
-            } else {
-               statusMessage.textContent = message.failure;
-               // дефолт
-            }
-         });
-      });
-   }
 });
