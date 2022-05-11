@@ -1,6 +1,5 @@
 window.addEventListener("DOMContentLoaded", () => {
    // Табы
-
    const tabs = document.querySelectorAll(".tabheader__item");
    const tabsContent = document.querySelectorAll(".tabcontent");
    const tabsParent = document.querySelector(".tabheader__items");
@@ -49,12 +48,9 @@ window.addEventListener("DOMContentLoaded", () => {
    // одна закрывает все табы, вторая показывает таб с тем номером, на который кликнул пользователь 
    // (айтем проверяется условием, и по условию присваивается номер, который передаётся в функцию)
 
-
    // Таймер
-
    const deadline = "2022-05-09";
    // Дедлайн таймера
-
 
    function getTimeRemaining(endtime) {
       // функция, вычесляющая данные для таймера
@@ -72,7 +68,6 @@ window.addEventListener("DOMContentLoaded", () => {
          minutes = Math.floor((t / 1000 / 60) % 60);
          seconds = Math.floor((t / 1000) % 60);
       }
-
       // В переменной Т = разница между дедлайном и текущим временем
       // Все следующие переменные вычесляют дни, часы.... в остатке + с 
       // округлнеие Math.floor(округляет к меньшему)
@@ -126,7 +121,6 @@ window.addEventListener("DOMContentLoaded", () => {
          // останавливаем функцию в случае, если разница в времени будет 0
       }
    }
-
    setClock(".timer", deadline);
 
    // Modal
@@ -188,6 +182,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
    window.addEventListener("scroll", showModalByScroll);
 
+
+
    // Forms
    const forms = document.querySelectorAll("form");
    // выносим все формы с сайта в переменную формс
@@ -206,72 +202,54 @@ window.addEventListener("DOMContentLoaded", () => {
    // делаем перебор массива
 
    function postData(form) {
-      form.addEventListener("submit", (e) => {
-         // на все кнопки баттон действует метод сабмит  
-         e.preventDefault();
-         const statusMessage = document.createElement("img");
-         // создаём елемент имг (для спинера) помещаем в статусмессадж
-         statusMessage.src = message.loading;
-         // источник для тега имг - берем из обьекта, где мы указывали пусть к спинеру
-         statusMessage.style.cssText = `
-            display: block;
-            margin: 0 auto;
-         `;
-         // назначаем стили спинеру
-         
-         
-         form.insertAdjacentElement("afterend", statusMessage);
-         // добавляем спинер на страницу после всех форм
-         
-         const request = new XMLHttpRequest();
-         request.open("POST", "js/server.php");
+      form.addEventListener('submit', (e) => {
+          e.preventDefault();
 
-         // request.setRequestHeader("Content-type", "multipart/form-data");
-         request.setRequestHeader("Content-type", "applications/json");
-         // При использовании обычного форм дата - заголовок не нужен. Если обычный джейсон - нужен.
-         const formData = new FormData(form);
-         // Объекты FormData используются, чтобы взять данные из HTML-формы и отправить их с помощью fetch или другого метода для работы с сетью.
+          let statusMessage = document.createElement('img');
+          statusMessage.src = message.loading;
+          statusMessage.style.cssText = `
+              display: block;
+              margin: 0 auto;
+          `;
+          form.insertAdjacentElement('afterend', statusMessage);
+      
+          const formData = new FormData(form);
+         // Конструктор FormData() создаёт новые объект FormData, если проще - HTML-форму.
+         // XMLHttpRequest 2 добавляет поддержку для нового интерфейса FormData. 
+         // Объекты FormData позволяют вам легко конструировать наборы пар ключ-значение, 
+         // представляющие поля формы и их значения
 
-         const object = {};
-         formData.forEach(function (value, key) {
-            object[key] = value;
-         });
-         // так как формдата - это не обычный обьект, его нужно перебрать
-         // в переменную
-
-         const json = JSON.stringify(object);
-         // переводим обьект в джейсон формат
+          const object = {};
+          formData.forEach(function(value, key){
+              object[key] = value;
+          });
+         //  Для того, что бы обьект ФОРМДАТА можно было использовать, для отправки
+         // на сервер в JSON формате, необходимо сначало этот обьект сделать
+         // обычным обьектом
 
 
-         // request.send(formData);
-         // если в обычном формате
-         request.send(json);
-         // если джейсон
-         // отправляем на сервер данные обьекта формдата 
-
-         request.addEventListener("load", () => {
-            // создаём обработчик события загрузки запроса
-            if (request.status === 200) {
-               // если успех
-               console.log(request.response);
-               showThanksModal(message.success);
-               // выводим сообщение про успех (задействуем фукнцию, отображающая модальное окно благодарности)
-               form.reset();
-               // сбрасываем поля формы
-               setTimeout(() => {
-                  statusMessage.remove();
-               }, 2000);
-               // удаляем сообщение про успех спусят 2 сек
-            } else {
-               showThanksModal(message.failure);
-               // дефолт
-            }
-         });
+          fetch('php/server.php', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(object)
+            //   дефолтный фетч пост запрос и перевод обьекта в Джейсон строку
+          }).then(data => {
+              console.log(data);
+              showThanksModal(message.success);
+              statusMessage.remove();
+          }).catch(() => {
+              showThanksModal(message.failure);
+          }).finally(() => {
+              form.reset();
+          });
       });
-   }
+  }
 
-   // Суть заключается в том, что мы возьмем модальное окно "Мы свяжемся с вами ..."  и спрячем его (добавим класс "hide")
-   // 
+
+   // Ф-ция заключается в том, что мы возьмем модальное окно 
+   // "Мы свяжемся с вами ..."  и спрячем его (добавим класс "hide")
    function showThanksModal(message) {
       const prevModalDialog = document.querySelector('.modal__dialog');
       prevModalDialog.classList.add('hide');
@@ -292,7 +270,7 @@ window.addEventListener("DOMContentLoaded", () => {
             `;
       document.querySelector('.modal').append(thanksModal);
       // потом в родительский элемент помещается редактированое мод. окно
-      
+
       setTimeout(() => {
          thanksModal.remove();
          prevModalDialog.classList.add('show');
@@ -303,18 +281,6 @@ window.addEventListener("DOMContentLoaded", () => {
       // возвращаем на место класс отображения окну ввода формы( что бы в следующий раз оно снова работало)
       // закрываем полностью модальное окно
    }
-
-
-   
-
-
-
-
-
-
-
-
-
 
 
    // Класс для карт
@@ -398,6 +364,4 @@ window.addEventListener("DOMContentLoaded", () => {
       11,
       ".menu .container",
    ).render();
-
-
 });
