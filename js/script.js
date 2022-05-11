@@ -212,7 +212,7 @@ window.addEventListener("DOMContentLoaded", () => {
               margin: 0 auto;
           `;
           form.insertAdjacentElement('afterend', statusMessage);
-      
+
           const formData = new FormData(form);
          // Конструктор FormData() создаёт новые объект FormData, если проще - HTML-форму.
          // XMLHttpRequest 2 добавляет поддержку для нового интерфейса FormData. 
@@ -364,4 +364,9 @@ window.addEventListener("DOMContentLoaded", () => {
       11,
       ".menu .container",
    ).render();
+
+
+   fetch("http://localhost:3000/menu")
+      .then(data => data.json())
+      .then(res => console.log(res));
 });
