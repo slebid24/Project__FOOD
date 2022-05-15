@@ -381,5 +381,65 @@ window.addEventListener("DOMContentLoaded", () => {
    });
 
 
+
+
+   // слайдер
+
+   const currentCounter = document.querySelector("#current");
+   const totalCounet = document.querySelector("#total");
+   const prevArr = document.querySelector(".offer__slider-prev");
+   const nextArr = document.querySelector(".offer__slider-next");
+   const offerSlide = document.querySelectorAll(".offer__slide");
+
+   function sliderOff() {
+   offerSlide.forEach((item) => {
+      item.classList.add("hide");
+      item.classList.remove("show");
+   });
+
+
+}
+
+// function showTabContent(i = 0) {
+//    tabsContent[i].classList.add("show", "fade");
+//    tabsContent[i].classList.remove("hide");
+//    tabs[i].classList.add("tabheader__item_active");
+// }
+
+   function showSlide(i = 0) {
+      offerSlide[i].classList.add("show");
+      offerSlide[i].classList.remove("hide");
+   }
+
+   sliderOff();
+   
+
+   // tabsParent.addEventListener("click", (e) => {
+   //    const target = e.target;
+   //    // можно создать переменную и поместить в неё е.таргет
+   //    if (target && target.classList.contains("tabheader__item")) {
+   //       tabs.forEach((item, i) => {
+   //          if (target == item) {
+   //             hideTabContent();
+   //             showTabContent(i);
+   //          }
+   //       });
+   //    }
+   // });
+
+   function sliderChanger(prevButton, nextButton) {
+      showSlide(n);
+      prevButton.addEventListener("click", (e) => {
+         sliderOff();
+         showSlide(n + 1);
+      });
+
+      nextButton.addEventListener("click", (e) => {
+         sliderOff();
+         showSlide(2);
+      });
+   }
+   
+   sliderChanger(prevArr, nextArr);
    
 });
