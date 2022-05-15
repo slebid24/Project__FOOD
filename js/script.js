@@ -196,56 +196,75 @@ window.addEventListener("DOMContentLoaded", () => {
    // обьект с типами сообщений результата запроса 
 
    forms.forEach(item => {
-      postData(item);
+      bindPostData(item);
    });
    // все формы взяты через квериселектор алл, по этому для присваивания функции постДата
    // делаем перебор массива
 
-   function postData(form) {
-      form.addEventListener('submit', (e) => {
-          e.preventDefault();
+   const postData = async (url, data) => {
+      // эта функция отвечает за постинг данных
+      const res = await fetch(url, {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/json'
+         },
+         body: data
+         //   дефолтный фетч пост запрос и перевод обьекта в Джейсон строку
+      });
 
-          let statusMessage = document.createElement('img');
-          statusMessage.src = message.loading;
-          statusMessage.style.cssText = `
+      return await res.json();
+      // response.json() – декодирует ответ в формате JSON, 
+      // ВОЗВРАЩАЕМ МЫ ЕГО, ПОТОМУ ЧТО В RES = ПРОМИС
+   };
+   // async - обьявляет, что функция асинхронна
+   // await - указывает, что бы пока не выполнилось это действие, 
+   // к следуюющему не переходить
+
+   function bindPostData(form) {
+      // эта  - за привязку постинга
+      form.addEventListener('submit', (e) => {
+         e.preventDefault();
+
+         let statusMessage = document.createElement('img');
+         statusMessage.src = message.loading;
+         statusMessage.style.cssText = `
               display: block;
               margin: 0 auto;
           `;
-          form.insertAdjacentElement('afterend', statusMessage);
+         form.insertAdjacentElement('afterend', statusMessage);
 
-          const formData = new FormData(form);
+         const formData = new FormData(form);
          // Конструктор FormData() создаёт новые объект FormData, если проще - HTML-форму.
          // XMLHttpRequest 2 добавляет поддержку для нового интерфейса FormData. 
          // Объекты FormData позволяют вам легко конструировать наборы пар ключ-значение, 
          // представляющие поля формы и их значения
 
-          const object = {};
-          formData.forEach(function(value, key){
-              object[key] = value;
-          });
+         
          //  Для того, что бы обьект ФОРМДАТА можно было использовать, для отправки
          // на сервер в JSON формате, необходимо сначало этот обьект сделать
          // обычным обьектом
+         // const object = {};
+         // formData.forEach(function (value, key) {
+         //    object[key] = value;
+         // });
+         // ПЛОХОЙ СПОСОБ
 
+         const json = JSON.stringify(Object.fromEntries(formData.entries()));
+          // ХОРОШИЙ СПОСОБ
+         
 
-          fetch('php/server.php', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(object)
-            //   дефолтный фетч пост запрос и перевод обьекта в Джейсон строку
-          }).then(data => {
-              console.log(data);
-              showThanksModal(message.success);
-              statusMessage.remove();
-          }).catch(() => {
-              showThanksModal(message.failure);
-          }).finally(() => {
-              form.reset();
-          });
+         postData('http://localhost:3000/requests', json)
+         .then(data => {
+            console.log(data);
+            showThanksModal(message.success);
+            statusMessage.remove();
+         }).catch(() => {
+            showThanksModal(message.failure);
+         }).finally(() => {
+            form.reset();
+         });
       });
-  }
+   }
 
 
    // Ф-ция заключается в том, что мы возьмем модальное окно 
@@ -338,35 +357,29 @@ window.addEventListener("DOMContentLoaded", () => {
    // div.render()
    // Но если этот обьект нужно использовать только на месте, то можно без присвоения переменной
 
-   new MenuCard(
-      "img/tabs/vegy.jpg",
-      "vegy",
-      'Меню "Фитнес"',
-      'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-      9,
-      ".menu .container",
-   ).render();
 
-   new MenuCard(
-      "img/tabs/elite.jpg",
-      "elite",
-      'Меню “Премиум”',
-      'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-      10,
-      ".menu .container",
-   ).render();
+   const gerResource = async (url) => {
+      // эта функция отвечает за получение данных для карточек
+      const res = await fetch(url);
 
-   new MenuCard(
-      "img/tabs/post.jpg",
-      "post",
-      'Меню "Постное"',
-      'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-      11,
-      ".menu .container",
-   ).render();
+      if (!res.ok) {
+        throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+      }
+      // ok – логическое значение: будет true, если код HTTP-статуса в диапазоне 200-299.
+      // status – код статуса HTTP-запроса, например 200.
+      // throw new Error вручную выкидывает ошибку в консоль
+      return await res.json();
+   };
+
+   gerResource("http://localhost:3000/menu")
+   .then(data => {
+      data.forEach(({img, altimg, title, descr, price}) => {
+         new MenuCard(img, altimg, title, descr, price, ".menu .container").render();
+      });
+      // с помощью деструктуризации помещаем данные из сервера в клас, потом рендерим на странице
+      // метод ФОРИЧ, сделает это столько раз, сколько у нас елементов в масиве на сервере ДБ.ДЖЕЙСОН
+   });
 
 
-   fetch("http://localhost:3000/menu")
-      .then(data => data.json())
-      .then(res => console.log(res));
+   
 });
