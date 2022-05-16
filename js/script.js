@@ -239,7 +239,7 @@ window.addEventListener("DOMContentLoaded", () => {
          // Объекты FormData позволяют вам легко конструировать наборы пар ключ-значение, 
          // представляющие поля формы и их значения
 
-         
+
          //  Для того, что бы обьект ФОРМДАТА можно было использовать, для отправки
          // на сервер в JSON формате, необходимо сначало этот обьект сделать
          // обычным обьектом
@@ -250,19 +250,19 @@ window.addEventListener("DOMContentLoaded", () => {
          // ПЛОХОЙ СПОСОБ
 
          const json = JSON.stringify(Object.fromEntries(formData.entries()));
-          // ХОРОШИЙ СПОСОБ
-         
+         // ХОРОШИЙ СПОСОБ
+
 
          postData('http://localhost:3000/requests', json)
-         .then(data => {
-            console.log(data);
-            showThanksModal(message.success);
-            statusMessage.remove();
-         }).catch(() => {
-            showThanksModal(message.failure);
-         }).finally(() => {
-            form.reset();
-         });
+            .then(data => {
+               console.log(data);
+               showThanksModal(message.success);
+               statusMessage.remove();
+            }).catch(() => {
+               showThanksModal(message.failure);
+            }).finally(() => {
+               form.reset();
+            });
       });
    }
 
@@ -363,7 +363,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const res = await fetch(url);
 
       if (!res.ok) {
-        throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+         throw new Error(`Could not fetch ${url}, status: ${res.status}`);
       }
       // ok – логическое значение: будет true, если код HTTP-статуса в диапазоне 200-299.
       // status – код статуса HTTP-запроса, например 200.
@@ -372,74 +372,74 @@ window.addEventListener("DOMContentLoaded", () => {
    };
 
    gerResource("http://localhost:3000/menu")
-   .then(data => {
-      data.forEach(({img, altimg, title, descr, price}) => {
-         new MenuCard(img, altimg, title, descr, price, ".menu .container").render();
+      .then(data => {
+         data.forEach(({
+            img,
+            altimg,
+            title,
+            descr,
+            price
+         }) => {
+            new MenuCard(img, altimg, title, descr, price, ".menu .container").render();
+         });
+         // с помощью деструктуризации помещаем данные из сервера в клас, потом рендерим на странице
+         // метод ФОРИЧ, сделает это столько раз, сколько у нас елементов в масиве на сервере ДБ.ДЖЕЙСОН
       });
-      // с помощью деструктуризации помещаем данные из сервера в клас, потом рендерим на странице
-      // метод ФОРИЧ, сделает это столько раз, сколько у нас елементов в масиве на сервере ДБ.ДЖЕЙСОН
-   });
 
 
 
 
    // слайдер
-
    const currentCounter = document.querySelector("#current");
-   const totalCounet = document.querySelector("#total");
+   const totalCounter = document.querySelector("#total");
    const prevArr = document.querySelector(".offer__slider-prev");
    const nextArr = document.querySelector(".offer__slider-next");
    const offerSlide = document.querySelectorAll(".offer__slide");
 
-   function sliderOff() {
-   offerSlide.forEach((item) => {
-      item.classList.add("hide");
-      item.classList.remove("show");
-   });
+   function slidesOff() {
+      offerSlide.forEach((item) => {
+         item.classList.add("hide");
+         item.classList.remove("show");
+      });
+   }
 
-
-}
-
-// function showTabContent(i = 0) {
-//    tabsContent[i].classList.add("show", "fade");
-//    tabsContent[i].classList.remove("hide");
-//    tabs[i].classList.add("tabheader__item_active");
-// }
-
-   function showSlide(i = 0) {
-      offerSlide[i].classList.add("show");
+   function slideOn(i) {
+      offerSlide[i].classList.add("show", "fade");
       offerSlide[i].classList.remove("hide");
    }
 
-   sliderOff();
-   
+   slidesOff();
 
-   // tabsParent.addEventListener("click", (e) => {
-   //    const target = e.target;
-   //    // можно создать переменную и поместить в неё е.таргет
-   //    if (target && target.classList.contains("tabheader__item")) {
-   //       tabs.forEach((item, i) => {
-   //          if (target == item) {
-   //             hideTabContent();
-   //             showTabContent(i);
-   //          }
-   //       });
-   //    }
-   // });
+   function slider(slidesItem, leftArr, rightArr, startIndex) {
+      let index = startIndex;
+      currentCounter.innerHTML = getZero(index + 1);
 
-   function sliderChanger(prevButton, nextButton) {
-      showSlide(n);
-      prevButton.addEventListener("click", (e) => {
-         sliderOff();
-         showSlide(n + 1);
+      function basicSlider() {
+         currentCounter.innerHTML = getZero(index + 1);
+         slidesOff();
+         slideOn(index);
+      }
+
+      leftArr.addEventListener("click", () => {
+         if (index == 0) {
+            index = slidesItem.length - 1;
+         } else {
+            index -= 1;
+         }
+         basicSlider();
       });
 
-      nextButton.addEventListener("click", (e) => {
-         sliderOff();
-         showSlide(2);
+      rightArr.addEventListener("click", () => {
+         if (index == slidesItem.length - 1) {
+            index = 0;
+         } else {
+            index += 1;
+         }
+         basicSlider();
       });
+      slideOn(index);
    }
    
-   sliderChanger(prevArr, nextArr);
-   
+   slider(offerSlide, prevArr, nextArr, 0);
+   totalCounter.innerHTML = getZero(offerSlide.length);
 });
