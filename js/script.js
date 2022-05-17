@@ -395,51 +395,113 @@ window.addEventListener("DOMContentLoaded", () => {
    const prevArr = document.querySelector(".offer__slider-prev");
    const nextArr = document.querySelector(".offer__slider-next");
    const offerSlide = document.querySelectorAll(".offer__slide");
+   const slidesWrapper = document.querySelector(".offer__slider-wrapper");
+   const slidesField = document.querySelector(".offer__slider-inner");
+   // новый блок между картинками и род. блоком
+   const width = window.getComputedStyle(slidesWrapper).width;
+   // ширина родительского блока
+   
+   let slideIndex = 1;
+   let offset = 0;
+   // отступ
 
-   function slidesOff() {
-      offerSlide.forEach((item) => {
-         item.classList.add("hide");
-         item.classList.remove("show");
-      });
-   }
+   slidesField.style.width = 100 * offerSlide.length + "%";
+   // устанавливаем ширину нового блока = сейчас он 400%
+   slidesField.style.display = "flex";
+   slidesField.style.transition = "0.5s all";
 
-   function slideOn(i) {
-      offerSlide[i].classList.add("show", "fade");
-      offerSlide[i].classList.remove("hide");
-   }
+   slidesWrapper.style.overflow = "hidden";
+   // 
+   offerSlide.forEach(slide => {
+      slide.style.width = width;
+   });
+   // задаем каждой картинке ширину родительского блока(?что бы полностью помещались)
 
-   slidesOff();
+   currentCounter.innerHTML = getZero(slideIndex);
 
-   function slider(slidesItem, leftArr, rightArr, startIndex) {
-      let index = startIndex;
-      currentCounter.innerHTML = getZero(index + 1);
-
-      function basicSlider() {
-         currentCounter.innerHTML = getZero(index + 1);
-         slidesOff();
-         slideOn(index);
+   nextArr.addEventListener("click", () => {
+      if (offset == (+width.slice(0, width.length - 2) * (offerSlide.length - 1))) {
+         offset = 0;
+      } else {
+         offset += +width.slice(0, width.length - 2);
       }
 
-      leftArr.addEventListener("click", () => {
-         if (index == 0) {
-            index = slidesItem.length - 1;
-         } else {
-            index -= 1;
-         }
-         basicSlider();
-      });
+      slidesField.style.transform = `translateX(-${offset}px)`;
+      // двигает блок в лево по оси Х на то колчество покселей, которое приходит 
+      // с условия выше
 
-      rightArr.addEventListener("click", () => {
-         if (index == slidesItem.length - 1) {
-            index = 0;
-         } else {
-            index += 1;
-         }
-         basicSlider();
-      });
-      slideOn(index);
-   }
-   
-   slider(offerSlide, prevArr, nextArr, 0);
+      if (slideIndex == offerSlide.length) {
+         slideIndex = 1;
+         currentCounter.innerHTML = getZero(slideIndex);
+      } else {
+         currentCounter.innerHTML = getZero(++slideIndex);
+      }
+   });
+
+   prevArr.addEventListener("click", () => {
+      if (offset == 0) {
+         offset = +width.slice(0, width.length - 2) * (offerSlide.length - 1);
+      } else {
+         offset -= +width.slice(0, width.length - 2);
+      }
+
+      slidesField.style.transform = `translateX(-${offset}px)`;
+
+      if (slideIndex == 1) {
+         slideIndex = offerSlide.length;
+         currentCounter.innerHTML = getZero(slideIndex);
+      } else {
+         currentCounter.innerHTML = getZero(--slideIndex);
+      }
+
+   });
+
    totalCounter.innerHTML = getZero(offerSlide.length);
+
+   // function slidesOff() {
+   //    offerSlide.forEach((item) => {
+   //       item.classList.add("hide");
+   //       item.classList.remove("show");
+   //    });
+   // }
+
+   // function slideOn(i) {
+   //    offerSlide[i].classList.add("show", "fade");
+   //    offerSlide[i].classList.remove("hide");
+   // }
+
+   // slidesOff();
+
+   // function slider(slidesItem, leftArr, rightArr, startIndex) {
+   //    let index = startIndex;
+   //    currentCounter.innerHTML = getZero(index + 1);
+
+   //    function basicSlider() {
+   //       currentCounter.innerHTML = getZero(index + 1);
+   //       slidesOff();
+   //       slideOn(index);
+   //    }
+
+   //    leftArr.addEventListener("click", () => {
+   //       if (index == 0) {
+   //          index = slidesItem.length - 1;
+   //       } else {
+   //          index -= 1;
+   //       }
+   //       basicSlider();
+   //    });
+
+   //    rightArr.addEventListener("click", () => {
+   //       if (index == slidesItem.length - 1) {
+   //          index = 0;
+   //       } else {
+   //          index += 1;
+   //       }
+   //       basicSlider();
+   //    });
+   //    slideOn(index);
+   // }
+
+   // slider(offerSlide, prevArr, nextArr, 0);
+   // totalCounter.innerHTML = getZero(offerSlide.length);
 });
